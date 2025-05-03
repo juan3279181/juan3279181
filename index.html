@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TronEduRewards - Learn & Earn</title>
-    <!-- Google AdSense -->
+    <!-- AdSense -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3679817190185454" crossorigin="anonymous"></script>
     <style>
         :root {
@@ -122,6 +122,19 @@
             max-height: 80vh;
             overflow-y: auto;
         }
+        .progress-bar {
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--tron-red), #ff5257);
+            width: 0%;
+            transition: width 0.5s;
+        }
         @media (max-width: 768px) {
             .container {
                 padding: 10px;
@@ -186,8 +199,8 @@
                 <h3>Your Progress</h3>
                 <p>Points Earned: <strong id="pointsDisplay">0</strong></p>
                 <p>Articles Read: <strong id="articlesRead">0</strong></p>
-                <div class="progress-bar" style="height: 20px; background: #eee; border-radius: 10px; margin: 1rem 0;">
-                    <div id="progressBar" style="height: 100%; width: 0%; background: var(--tron-red); border-radius: 10px;"></div>
+                <div class="progress-bar">
+                    <div id="progressBar" class="progress"></div>
                 </div>
                 <button class="btn" id="claimBtn" disabled>Claim Reward (100 Points Needed)</button>
             </div>
@@ -227,7 +240,18 @@
         // ======================
         const config = {
             pointsPerArticle: 10,
-            pointsNeededForReward: 100
+            pointsNeededForReward: 100,
+            adRefreshInterval: 30000 // 30 seconds
+        };
+
+        // ======================
+        // State Management
+        // ======================
+        let user = {
+            trxAddress: '',
+            points: 0,
+            articlesRead: 0,
+            lastLogin: null
         };
 
         // ======================
@@ -246,18 +270,98 @@
         const privacyLink = document.getElementById('privacyLink');
 
         // ======================
-        // State Management
+        // SEO Optimization
         // ======================
-        let user = {
-            trxAddress: '',
-            points: 0,
-            articlesRead: 0,
-            lastLogin: null
-        };
+        function setupSEO() {
+            // Dynamic Meta Tags
+            const metaTags = [
+                // Basic SEO
+                { name: 'description', content: 'Learn about TRON blockchain technology and earn rewards through educational content' },
+                { name: 'keywords', content: 'TRON, TRX, cryptocurrency, blockchain education, crypto rewards' },
+                { name: 'author', content: 'TronEduRewards' },
+                
+                // OpenGraph (Facebook/LinkedIn)
+                { property: 'og:title', content: 'TronEduRewards - TRON Blockchain Learning Platform' },
+                { property: 'og:description', content: 'Free educational content about TRON network and smart contracts' },
+                { property: 'og:url', content: window.location.href },
+                { property: 'og:type', content: 'website' },
+                { property: 'og:image', content: 'https://yourdomain.com/images/og-image.jpg' },
+                
+                // Twitter Card
+                { name: 'twitter:card', content: 'summary_large_image' },
+                { name: 'twitter:title', content: 'TronEduRewards - Learn TRON Blockchain' },
+                { name: 'twitter:description', content: 'Educational content about TRON cryptocurrency' },
+                { name: 'twitter:image', content: 'https://yourdomain.com/images/twitter-card.jpg' }
+            ];
+
+            // Create and append meta tags
+            metaTags.forEach(tag => {
+                const meta = document.createElement('meta');
+                if (tag.name) meta.setAttribute('name', tag.name);
+                if (tag.property) meta.setAttribute('property', tag.property);
+                meta.setAttribute('content', tag.content);
+                document.head.appendChild(meta);
+            });
+
+            // Canonical URL
+            const link = document.createElement('link');
+            link.setAttribute('rel', 'canonical');
+            link.setAttribute('href', window.location.href.split('?')[0]);
+            document.head.appendChild(link);
+        }
 
         // ======================
-        // Utility Functions
+        // Core Functions
         // ======================
+        function login() {
+            const address = trxAddressInput.value.trim();
+            
+            // Basic TRX address validation
+            if (!address.startsWith('T') || address.length < 25) {
+                alert('Please enter a valid TRON address (should start with T)');
+                return;
+            }
+            
+            user.trxAddress = address;
+            user.lastLogin = new Date().toISOString();
+            
+            authSection.style.display = 'none';
+            dashboard.style.display = 'block';
+            
+            saveUserData();
+            updateUI();
+            
+            // Initialize AdSense
+            (adsbygoogle = window.adsbygoogle || []).push({});
+            
+            // Refresh ads periodically
+            setInterval(() => {
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            }, config.adRefreshInterval);
+        }
+
+        function readArticle() {
+            user.points += config.pointsPerArticle;
+            user.articlesRead += 1;
+            
+            saveUserData();
+            updateUI();
+            
+            // Simulate article loading
+            setTimeout(() => {
+                alert('Thank you for reading! You earned 10 points.');
+            }, 1500);
+        }
+
+        function claimReward() {
+            if (user.points >= config.pointsNeededForReward) {
+                alert('Educational reward unlocked! Continue learning to discover more.');
+                user.points = 0;
+                saveUserData();
+                updateUI();
+            }
+        }
+
         function saveUserData() {
             localStorage.setItem('tronEduRewardsUser', JSON.stringify(user));
         }
@@ -287,53 +391,6 @@
         }
 
         // ======================
-        // Core Functions
-        // ======================
-        function login() {
-            const address = trxAddressInput.value.trim();
-            
-            // Basic TRX address validation
-            if (!address.startsWith('T') || address.length < 25) {
-                alert('Please enter a valid TRON address (should start with T)');
-                return;
-            }
-            
-            user.trxAddress = address;
-            user.lastLogin = new Date().toISOString();
-            
-            authSection.style.display = 'none';
-            dashboard.style.display = 'block';
-            
-            saveUserData();
-            updateUI();
-            
-            // Initialize AdSense
-            (adsbygoogle = window.adsbygoogle || []).push({});
-        }
-
-        function readArticle() {
-            user.points += config.pointsPerArticle;
-            user.articlesRead += 1;
-            
-            saveUserData();
-            updateUI();
-            
-            // Simulate article loading
-            setTimeout(() => {
-                alert('Thank you for reading! You earned 10 points.');
-            }, 1500);
-        }
-
-        function claimReward() {
-            if (user.points >= config.pointsNeededForReward) {
-                alert('Educational reward unlocked! Continue learning to discover more.');
-                user.points = 0;
-                saveUserData();
-                updateUI();
-            }
-        }
-
-        // ======================
         // Event Listeners
         // ======================
         loginBtn.addEventListener('click', login);
@@ -347,13 +404,16 @@
         // ======================
         // Initialize App
         // ======================
-        loadUserData();
-        if (user.trxAddress) {
-            authSection.style.display = 'none';
-            dashboard.style.display = 'block';
-            updateUI();
-            (adsbygoogle = window.adsbygoogle || []).push({});
-        }
+        document.addEventListener('DOMContentLoaded', function() {
+            setupSEO();
+            loadUserData();
+            
+            if (user.trxAddress) {
+                authSection.style.display = 'none';
+                dashboard.style.display = 'block';
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            }
+        });
     </script>
 </body>
 </html>
