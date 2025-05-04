@@ -12,4 +12,4 @@ Allow: /
 Crawl-delay: 2
 
 # Sitemap location
-Sitemap: https://juan3279181.github.io/TronEduRewards/sitemap.xml
+Sitemap: http://tronedurewards.great-site.net/sitemap.xml
